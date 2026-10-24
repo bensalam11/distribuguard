@@ -41,6 +41,9 @@ _Authentication → URL Configuration_ :
 
 ## 4. Modèles d'e-mails (obligatoire)
 
+> Sur le plan gratuit, Supabase refuse de modifier les modèles tant que le SMTP personnalisé (étape 5)
+> n'est pas configuré. Faites l'étape 5 d'abord.
+
 _Authentication → Emails → Templates_. Les modèles par défaut ne fonctionnent pas avec l'application :
 remplacez le contenu de ces trois modèles par celui des fichiers du dossier `supabase/templates/` :
 
@@ -49,6 +52,9 @@ remplacez le contenu de ces trois modèles par celui des fichiers du dossier `su
 | Confirm signup   | Confirmez votre inscription à DistribuGuard | `supabase/templates/confirmation.html` |
 | Invite user      | Vous êtes invité sur DistribuGuard        | `supabase/templates/invite.html`       |
 | Reset Password   | Réinitialisation de votre mot de passe   | `supabase/templates/recovery.html`     |
+
+Alternative par la CLI : décommenter les blocs `[auth.email.template.*]` de `supabase/config.toml`, puis
+`npx supabase config push`. Cette commande applique aussi les réglages de l'étape 3 (déjà décrits dans ce fichier).
 
 ## 5. Envoi des e-mails (SMTP)
 
