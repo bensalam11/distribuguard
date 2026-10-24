@@ -35,7 +35,7 @@ export function QuantityField({
             defaultValue={defaultCases}
             placeholder="0"
             className={cx(input, border)}
-            aria-label={`${label} — casiers`}
+            aria-label={`${label} (casiers)`}
           />
           <span className="text-sm text-slate-500">casiers</span>
         </label>
@@ -46,7 +46,7 @@ export function QuantityField({
             defaultValue={defaultBottles}
             placeholder="0"
             className={cx(input, border)}
-            aria-label={`${label} — bouteilles`}
+            aria-label={`${label} (bouteilles)`}
           />
           <span className="text-sm text-slate-500">btl</span>
         </label>

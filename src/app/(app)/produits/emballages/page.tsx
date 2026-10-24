@@ -70,7 +70,7 @@ export default async function PackagingPage({ searchParams }: { searchParams: Pr
       />
       <Tabs items={CATALOG_TABS} />
 
-      <div className="grid gap-6 xl:grid-cols-[1fr_380px]">
+      <div className="grid gap-6 lg:grid-cols-[1fr_360px]">
         <Card title={`Emballages (${types?.length ?? 0})`}>
           {types && types.length > 0 ? (
             <DataTable
@@ -112,7 +112,7 @@ export default async function PackagingPage({ searchParams }: { searchParams: Pr
             <EmptyState
               title={
                 canManage
-                  ? "Aucun emballage — ajoutez votre casier vide et votre bouteille vide consignés."
+                  ? "Aucun emballage. Ajoutez votre casier vide et votre bouteille vide consignés."
                   : "Aucun emballage pour le moment."
               }
             />
@@ -124,7 +124,10 @@ export default async function PackagingPage({ searchParams }: { searchParams: Pr
         </Card>
 
         {canManage && (
-          <Card title={editing ? `Modifier « ${editing.name} »` : "Ajouter un emballage"}>
+          <Card
+            className="order-first lg:order-none"
+            title={editing ? `Modifier « ${editing.name} »` : "Ajouter un emballage"}
+          >
             {editing ? (
               <EntityForm
                 key={editing.id}

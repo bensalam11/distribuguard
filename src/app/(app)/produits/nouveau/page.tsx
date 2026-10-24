@@ -20,12 +20,12 @@ export default async function NewProductPage() {
         title="Nouveau produit"
         description={
           can(ctx.member.role, "prices.manage")
-            ? "Après la création, vous saisirez ses prix."
+            ? "Code, nom, casier et prix suffisent pour commencer."
             : "Les prix sont fixés par le propriétaire ou le gérant."
         }
       />
       <Card className="max-w-3xl">
-        <ProductForm packaging={packaging} initial={{ bottlesPerCase: "12" }} />
+        <ProductForm packaging={packaging} canSetPrice={can(ctx.member.role, "prices.manage")} />
       </Card>
     </>
   );

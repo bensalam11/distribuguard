@@ -41,7 +41,7 @@ export default async function DepotsPage({ searchParams }: { searchParams: Promi
       <PageHeader title="Dépôts et véhicules" description="Les lieux où se trouve votre stock." />
       <Tabs items={LOGISTICS_TABS} />
 
-      <div className="grid gap-6 xl:grid-cols-[1fr_380px]">
+      <div className="grid gap-6 lg:grid-cols-[1fr_360px]">
         <Card
           title={`Dépôts (${activeCount} actif${activeCount > 1 ? "s" : ""}${maxDepots ? ` sur ${maxDepots} autorisés` : ""})`}
         >
@@ -61,7 +61,7 @@ export default async function DepotsPage({ searchParams }: { searchParams: Promi
                   <td className={`${td} font-medium`}>
                     {d.name} {d.is_main && <Badge tone="brand">Principal</Badge>}
                   </td>
-                  <td className={`${td} text-slate-600`}>{d.address ?? "—"}</td>
+                  <td className={`${td} text-slate-600`}>{d.address ?? "-"}</td>
                   <td className={td}>
                     <StatusBadge active={d.is_active} />
                   </td>
@@ -79,12 +79,15 @@ export default async function DepotsPage({ searchParams }: { searchParams: Promi
               ))}
             </DataTable>
           ) : (
-            <EmptyState title="Aucun dépôt — ajoutez votre premier dépôt." />
+            <EmptyState title="Aucun dépôt. Ajoutez votre premier dépôt." />
           )}
         </Card>
 
         {canManage && (
-          <Card title={editing ? `Modifier « ${editing.name} »` : "Ajouter un dépôt"}>
+          <Card
+            className="order-first lg:order-none"
+            title={editing ? `Modifier « ${editing.name} »` : "Ajouter un dépôt"}
+          >
             <EntityForm
               key={editing?.id ?? "new"}
               action={saveDepotAction}

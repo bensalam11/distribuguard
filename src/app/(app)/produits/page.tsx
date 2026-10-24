@@ -142,7 +142,7 @@ export default async function ProductsPage({
                     </td>
                   )}
                   <td className={`${td} whitespace-nowrap`}>
-                    {p.alert_threshold > 0 ? formatCasesBottles(p.alert_threshold, p.bottles_per_case) : "—"}
+                    {p.alert_threshold > 0 ? formatCasesBottles(p.alert_threshold, p.bottles_per_case) : "-"}
                   </td>
                   <td className={td}>
                     <StatusBadge active={p.is_active} />
@@ -157,7 +157,7 @@ export default async function ProductsPage({
               search
                 ? "Aucun produit ne correspond à votre recherche."
                 : canEdit
-                  ? "Aucun produit — ajoutez votre premier produit."
+                  ? "Aucun produit. Ajoutez votre premier produit."
                   : "Aucun produit pour le moment."
             }
             action={

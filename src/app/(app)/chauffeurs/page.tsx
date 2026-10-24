@@ -39,7 +39,7 @@ export default async function DriversPage({ searchParams }: { searchParams: Prom
       />
       <Tabs items={LOGISTICS_TABS} />
 
-      <div className="grid gap-6 xl:grid-cols-[1fr_380px]">
+      <div className="grid gap-6 lg:grid-cols-[1fr_360px]">
         <Card title={`Chauffeurs (${drivers?.length ?? 0})`}>
           {drivers && drivers.length > 0 ? (
             <DataTable
@@ -55,7 +55,7 @@ export default async function DriversPage({ searchParams }: { searchParams: Prom
               {drivers.map((d) => (
                 <tr key={d.id}>
                   <td className={`${td} font-medium`}>{d.full_name}</td>
-                  <td className={`${td} text-slate-600`}>{d.phone ?? "—"}</td>
+                  <td className={`${td} text-slate-600`}>{d.phone ?? "-"}</td>
                   <td className={td}>
                     <StatusBadge active={d.is_active} />
                   </td>
@@ -75,14 +75,17 @@ export default async function DriversPage({ searchParams }: { searchParams: Prom
           ) : (
             <EmptyState
               title={
-                canManage ? "Aucun chauffeur — ajoutez votre premier chauffeur." : "Aucun chauffeur pour le moment."
+                canManage ? "Aucun chauffeur. Ajoutez votre premier chauffeur." : "Aucun chauffeur pour le moment."
               }
             />
           )}
         </Card>
 
         {canManage && (
-          <Card title={editing ? `Modifier « ${editing.full_name} »` : "Ajouter un chauffeur"}>
+          <Card
+            className="order-first lg:order-none"
+            title={editing ? `Modifier « ${editing.full_name} »` : "Ajouter un chauffeur"}
+          >
             <EntityForm
               key={editing?.id ?? "new"}
               action={saveDriverAction}

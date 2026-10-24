@@ -422,3 +422,36 @@ describe.skipIf(!hasDatabase)("grille de prix : save_product_prices (SQL)", () =
     ).rejects.toThrow(/Produit introuvable/);
   });
 });
+
+describe.skipIf(!hasDatabase)("création d'un produit avec son prix : create_product (SQL)", () => {
+  it("crée la fiche et le prix standard en une fois", async () => {
+    const org = await signupOrganization();
+    const crate = await createCrate(org.userId, org.orgId);
+    const [{ create_product: id }] = await as(org.userId).query<{ create_product: string }>(
+      "select public.create_product(p_code => 'KOLA65', p_name => 'Bière Kola 65 cl', p_bottles_per_case => 12, p_crate_type_id => $1, p_case_price => 7800)",
+      [crate],
+    );
+    const prices = await as(org.userId).query(
+      "select client_category, case_price::int from public.product_prices where product_id = $1",
+      [id],
+    );
+    expect(prices).toEqual([{ client_category: null, case_price: 7800 }]);
+  });
+
+  it("si le prix est refusé (magasinier), le produit n'est pas créé non plus", async () => {
+    const org = await signupOrganization();
+    const { userId } = await inviteMember(org.userId, "storekeeper");
+    await expect(
+      as(userId).query(
+        "select public.create_product(p_code => 'EAU150', p_name => 'Eau Source 1,5 L', p_bottles_per_case => 6, p_case_price => 3000)",
+      ),
+    ).rejects.toThrow(/Seuls le propriétaire et le gérant/);
+    expect(await adminQuery("select 1 from public.products where organization_id = $1", [org.orgId])).toEqual([]);
+
+    // Sans prix, le magasinier crée bien la fiche.
+    await as(userId).query(
+      "select public.create_product(p_code => 'EAU150', p_name => 'Eau Source 1,5 L', p_bottles_per_case => 6)",
+    );
+    expect(await adminQuery("select 1 from public.products where organization_id = $1", [org.orgId])).toHaveLength(1);
+  });
+});

@@ -21,9 +21,10 @@ export async function middleware(request: NextRequest) {
     },
   });
 
-  const {
-    data: { user },
-  } = await supabase.auth.getUser();
+  // getClaims vérifie le jeton localement (clés ES256 publiées par Supabase) et le
+  // rafraîchit si besoin : pas d'aller-retour réseau vers Auth à chaque clic.
+  const { data } = await supabase.auth.getClaims();
+  const user = data?.claims?.sub ? data.claims : null;
 
   const { pathname } = request.nextUrl;
 

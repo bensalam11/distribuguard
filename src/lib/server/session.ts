@@ -23,40 +23,54 @@ export type ContextResult =
  */
 export const loadContext = cache(async (): Promise<ContextResult> => {
   const supabase = await createClient();
-  const {
-    data: { user },
-  } = await supabase.auth.getUser();
-  if (!user) return { kind: "anonymous" };
+  // Vérification locale du jeton (le middleware l'a déjà rafraîchi).
+  const { data: auth } = await supabase.auth.getClaims();
+  const claims = auth?.claims;
+  if (!claims?.sub) return { kind: "anonymous" };
+  const email = typeof claims.email === "string" ? claims.email : "";
 
+  // Membre, organisation et abonnement en une seule requête.
   const { data: member } = await supabase
     .from("members")
-    .select("id, full_name, role, organization:organizations(id, name, city)")
-    .eq("user_id", user.id)
+    .select(
+      "id, full_name, role, organization:organizations(id, name, city, " +
+        "subscription:subscriptions(plan_code, status, current_period_end, plan:plans(name)))",
+    )
+    .eq("user_id", claims.sub)
     .eq("is_active", true)
     .maybeSingle();
 
-  const organization = member?.organization as unknown as AppContext["organization"] | null;
-  if (!member || !organization) {
-    return { kind: "no_organization", email: user.email ?? "" };
+  type Row = {
+    id: string;
+    full_name: string;
+    role: MemberRole;
+    organization:
+      | (AppContext["organization"] & {
+          subscription:
+            | { plan_code: string; status: string; current_period_end: string; plan: { name: string } | null }
+            | { plan_code: string; status: string; current_period_end: string; plan: { name: string } | null }[]
+            | null;
+        })
+      | null;
+  };
+  const row = member as unknown as Row | null;
+  const organization = row?.organization;
+  if (!row || !organization) {
+    return { kind: "no_organization", email };
   }
-
-  const { data: sub } = await supabase
-    .from("subscriptions")
-    .select("plan_code, status, current_period_end, plan:plans(name)")
-    .eq("organization_id", organization.id)
-    .maybeSingle();
+  const sub = Array.isArray(organization.subscription) ? organization.subscription[0] : organization.subscription;
 
   return {
     kind: "ok",
     context: {
-      userId: user.id,
-      email: user.email ?? "",
-      member: { id: member.id, fullName: member.full_name, role: member.role as MemberRole },
-      organization,
+      userId: claims.sub,
+      email,
+      member: { id: row.id, fullName: row.full_name, role: row.role },
+      organization: { id: organization.id, name: organization.name, city: organization.city },
       subscription: sub
         ? {
             planCode: sub.plan_code,
-            planName: (sub.plan as unknown as { name: string } | null)?.name ?? sub.plan_code,
+            planName: sub.plan?.name ?? sub.plan_code,
             status: sub.status,
             currentPeriodEnd: sub.current_period_end,
           }

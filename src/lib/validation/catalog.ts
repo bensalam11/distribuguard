@@ -70,6 +70,8 @@ export const productSchema = z
     thresholdCases: z.union([z.literal("").transform(() => 0), intField("Seuil (casiers)", 0, 1_000_000)]),
     thresholdBottles: z.union([z.literal("").transform(() => 0), intField("Seuil (bouteilles)", 0, 1_000_000)]),
     isActive: boolField.default(true),
+    /** Prix standard au casier, saisi à la création (facultatif). */
+    casePrice: optionalFcfaAmount("Prix au casier").default(null),
   })
   .transform(({ thresholdCases, thresholdBottles, volumeCl: volumeMl, ...v }) => ({
     ...v,

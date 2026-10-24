@@ -42,12 +42,12 @@ export function PriceGrid({
   const v = state.values ?? initial;
   const errors = state.fieldErrors ?? {};
   const standardCase = Number(v["standard.casePrice"]?.replace(/\s/g, "")) || 0;
+  const hasCategoryPrice = CLIENT_CATEGORIES.some(
+    (c) => v[`${c}.casePrice`] || errors[`${c}.casePrice`] || errors[`${c}.bottlePrice`],
+  );
 
-  return (
-    <form action={action} className="space-y-4" noValidate>
-      {state.message && <Alert tone={state.ok ? "success" : "error"}>{state.message}</Alert>}
-      <input type="hidden" name="productId" value={productId} />
-
+  function renderTable(rows: typeof ROWS) {
+    return (
       <div className="-mx-5 overflow-x-auto">
         <table className="min-w-full text-sm">
           <thead className="border-b border-slate-200 text-left text-xs font-semibold tracking-wide text-slate-500 uppercase">
@@ -58,7 +58,7 @@ export function PriceGrid({
             </tr>
           </thead>
           <tbody className="divide-y divide-slate-100">
-            {ROWS.map((row) => {
+            {rows.map((row) => {
               const caseErr = errors[`${row.key}.casePrice`];
               const bottleErr = errors[`${row.key}.bottlePrice`];
               return (
@@ -70,11 +70,11 @@ export function PriceGrid({
                   <td className="px-5 py-3 align-top">
                     <input
                       name={`${row.key}.casePrice`}
-                      aria-label={`${row.label} — prix au casier`}
+                      aria-label={`${row.label}, prix au casier`}
                       inputMode="numeric"
                       defaultValue={v[`${row.key}.casePrice`]}
                       disabled={!editable}
-                      placeholder={row.key === "standard" ? "7 800" : "—"}
+                      placeholder={row.key === "standard" ? "7 800" : "-"}
                       className={cx(input, caseErr ? "border-red-400" : "border-slate-300")}
                     />
                     {caseErr && <p className="mt-1 text-xs text-red-600">{caseErr[0]}</p>}
@@ -82,7 +82,7 @@ export function PriceGrid({
                   <td className="px-5 py-3 align-top">
                     <input
                       name={`${row.key}.bottlePrice`}
-                      aria-label={`${row.label} — prix à la bouteille`}
+                      aria-label={`${row.label}, prix à la bouteille`}
                       inputMode="numeric"
                       defaultValue={v[`${row.key}.bottlePrice`]}
                       disabled={!editable}
@@ -101,6 +101,23 @@ export function PriceGrid({
           </tbody>
         </table>
       </div>
+    );
+  }
+
+  return (
+    <form action={action} className="space-y-4" noValidate>
+      {state.message && <Alert tone={state.ok ? "success" : "error"}>{state.message}</Alert>}
+      <input type="hidden" name="productId" value={productId} />
+
+      {renderTable(ROWS.slice(0, 1))}
+
+      <details open={hasCategoryPrice} className="group rounded-lg border border-slate-200">
+        <summary className="cursor-pointer list-none px-4 py-3 text-sm font-medium text-slate-700 select-none">
+          <span className="mr-1 inline-block transition group-open:rotate-90">›</span> Prix par type de client
+          (facultatif)
+        </summary>
+        <div className="border-t border-slate-200 px-5">{renderTable(ROWS.slice(1))}</div>
+      </details>
 
       <p className="text-xs text-slate-500">
         Montants en FCFA entiers. Sans prix à la bouteille, la vente au détail utilise le prix au casier ÷{" "}

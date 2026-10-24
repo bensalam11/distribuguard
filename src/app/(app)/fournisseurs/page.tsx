@@ -36,7 +36,7 @@ export default async function SuppliersPage({ searchParams }: { searchParams: Pr
     <>
       <PageHeader title="Fournisseurs" description="Brasseries et autres fournisseurs de boissons." />
 
-      <div className="grid gap-6 xl:grid-cols-[1fr_380px]">
+      <div className="grid gap-6 lg:grid-cols-[1fr_360px]">
         <Card title={`Fournisseurs (${suppliers?.length ?? 0})`}>
           {suppliers && suppliers.length > 0 ? (
             <DataTable
@@ -57,10 +57,10 @@ export default async function SuppliersPage({ searchParams }: { searchParams: Pr
                     {s.address && <p className="text-xs text-slate-500">{s.address}</p>}
                   </td>
                   <td className={`${td} text-slate-600`}>
-                    {s.contact_name ?? "—"}
+                    {s.contact_name ?? "-"}
                     {s.email && <p className="text-xs text-slate-500">{s.email}</p>}
                   </td>
-                  <td className={`${td} text-slate-600`}>{s.phone ?? "—"}</td>
+                  <td className={`${td} text-slate-600`}>{s.phone ?? "-"}</td>
                   <td className={td}>
                     <StatusBadge active={s.is_active} />
                   </td>
@@ -79,13 +79,16 @@ export default async function SuppliersPage({ searchParams }: { searchParams: Pr
             </DataTable>
           ) : (
             <EmptyState
-              title={canManage ? "Aucun fournisseur — ajoutez votre brasserie." : "Aucun fournisseur pour le moment."}
+              title={canManage ? "Aucun fournisseur. Ajoutez votre brasserie." : "Aucun fournisseur pour le moment."}
             />
           )}
         </Card>
 
         {canManage && (
-          <Card title={editing ? `Modifier « ${editing.name} »` : "Ajouter un fournisseur"}>
+          <Card
+            className="order-first lg:order-none"
+            title={editing ? `Modifier « ${editing.name} »` : "Ajouter un fournisseur"}
+          >
             <EntityForm
               key={editing?.id ?? "new"}
               action={saveSupplierAction}

@@ -36,6 +36,7 @@ const PRODUCT_FIELDS = [
   "thresholdCases",
   "thresholdBottles",
   "isActive",
+  "casePrice",
 ] as const;
 
 export async function saveProductAction(_prev: ActionState, fd: FormData): Promise<ActionState> {
@@ -43,8 +44,8 @@ export async function saveProductAction(_prev: ActionState, fd: FormData): Promi
   const result = await saveProduct(values);
   if (!result.ok) return { ...result, values };
   revalidatePath("/produits");
-  // Après création : la fiche, pour saisir les prix.
-  redirect(values.id ? "/produits" : `/produits/${result.id}?cree=1`);
+  // Création sans prix : la fiche, pour le saisir.
+  redirect(values.id || values.casePrice ? "/produits" : `/produits/${result.id}?cree=1`);
 }
 
 export async function savePriceGridAction(_prev: ActionState, fd: FormData): Promise<ActionState> {

@@ -47,7 +47,7 @@ export default async function VehiclesPage({ searchParams }: { searchParams: Pro
       />
       <Tabs items={LOGISTICS_TABS} />
 
-      <div className="grid gap-6 xl:grid-cols-[1fr_380px]">
+      <div className="grid gap-6 lg:grid-cols-[1fr_360px]">
         <Card title={`Véhicules (${vehicles?.length ?? 0})`}>
           {vehicles && vehicles.length > 0 ? (
             <DataTable
@@ -66,8 +66,8 @@ export default async function VehiclesPage({ searchParams }: { searchParams: Pro
                 <tr key={v.id}>
                   <td className={`${td} font-medium`}>{v.name}</td>
                   <td className={td}>{VEHICLE_KIND_LABELS[v.kind as keyof typeof VEHICLE_KIND_LABELS]}</td>
-                  <td className={`${td} text-slate-600`}>{v.plate_number ?? "—"}</td>
-                  <td className={`${td} text-slate-600`}>{v.capacity_cases ? `${v.capacity_cases} casiers` : "—"}</td>
+                  <td className={`${td} text-slate-600`}>{v.plate_number ?? "-"}</td>
+                  <td className={`${td} text-slate-600`}>{v.capacity_cases ? `${v.capacity_cases} casiers` : "-"}</td>
                   <td className={td}>
                     <StatusBadge active={v.is_active} />
                   </td>
@@ -88,7 +88,7 @@ export default async function VehiclesPage({ searchParams }: { searchParams: Pro
             <EmptyState
               title={
                 canManage
-                  ? "Aucun véhicule — ajoutez votre premier tricycle ou camionnette."
+                  ? "Aucun véhicule. Ajoutez votre premier tricycle ou camionnette."
                   : "Aucun véhicule pour le moment."
               }
             />
@@ -96,7 +96,10 @@ export default async function VehiclesPage({ searchParams }: { searchParams: Pro
         </Card>
 
         {canManage && (
-          <Card title={editing ? `Modifier « ${editing.name} »` : "Ajouter un véhicule"}>
+          <Card
+            className="order-first lg:order-none"
+            title={editing ? `Modifier « ${editing.name} »` : "Ajouter un véhicule"}
+          >
             <EntityForm
               key={editing?.id ?? "new"}
               action={saveVehicleAction}

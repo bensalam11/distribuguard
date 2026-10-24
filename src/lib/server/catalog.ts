@@ -119,25 +119,50 @@ export async function saveProduct(input: unknown): Promise<SaveResult> {
   const parsed = productSchema.safeParse(input);
   if (!parsed.success) return invalid(parsed.error);
   const v = parsed.data;
+  const messages = {
+    duplicate: "Un produit porte déjà ce code.",
+    created: "Produit créé.",
+    updated: "Produit enregistré.",
+  };
 
-  return saveRow(
-    ctx,
-    "products",
-    v.id,
-    {
-      code: v.code,
-      name: v.name,
-      brand: v.brand,
-      category: v.category,
-      volume_ml: v.volumeMl,
-      bottles_per_case: v.bottlesPerCase,
-      crate_type_id: v.crateTypeId,
-      bottle_type_id: v.bottleTypeId,
-      alert_threshold: v.alertThreshold,
-      is_active: v.isActive,
-    },
-    { duplicate: "Un produit porte déjà ce code.", created: "Produit créé.", updated: "Produit enregistré." },
-  );
+  if (v.id) {
+    return saveRow(
+      ctx,
+      "products",
+      v.id,
+      {
+        code: v.code,
+        name: v.name,
+        brand: v.brand,
+        category: v.category,
+        volume_ml: v.volumeMl,
+        bottles_per_case: v.bottlesPerCase,
+        crate_type_id: v.crateTypeId,
+        bottle_type_id: v.bottleTypeId,
+        alert_threshold: v.alertThreshold,
+        is_active: v.isActive,
+      },
+      messages,
+    );
+  }
+
+  // Création : fiche + prix standard en une transaction. Le magasinier ne fixe jamais de prix.
+  const casePrice = can(ctx.member.role, "prices.manage") ? v.casePrice : null;
+  const supabase = await createClient();
+  const { data: id, error } = await supabase.rpc("create_product", {
+    p_code: v.code,
+    p_name: v.name,
+    p_bottles_per_case: v.bottlesPerCase,
+    p_crate_type_id: v.crateTypeId,
+    p_bottle_type_id: v.bottleTypeId,
+    p_brand: v.brand,
+    p_category: v.category,
+    p_volume_ml: v.volumeMl,
+    p_alert_threshold: v.alertThreshold,
+    p_case_price: casePrice,
+  });
+  if (error || !id) return { ok: false, message: dbErrorMessage(error, messages) };
+  return { ok: true, id: id as string, message: messages.created };
 }
 
 export async function savePriceGrid(input: unknown): Promise<SaveResult> {

@@ -1,6 +1,6 @@
 "use client";
 
-import Link from "next/link";
+import Link, { useLinkStatus } from "next/link";
 import { usePathname } from "next/navigation";
 import { cx } from "@/components/ui/form";
 import { isNavItemActive, type NavIcon, type NavItem } from "@/lib/navigation";
@@ -57,6 +57,20 @@ function Icon({ name, className }: { name: NavIcon; className?: string }) {
   );
 }
 
+/** Point animé affiché dès le clic, pendant le chargement de la page. */
+function PendingDot() {
+  const { pending } = useLinkStatus();
+  return (
+    <span
+      aria-hidden="true"
+      className={cx(
+        "h-1.5 w-1.5 rounded-full bg-accent-500 transition-opacity md:ml-auto",
+        pending ? "animate-pulse opacity-100" : "opacity-0",
+      )}
+    />
+  );
+}
+
 /** Navigation latérale (ordinateur). */
 export function SidebarLinks({ items }: { items: NavItem[] }) {
   const pathname = usePathname();
@@ -76,6 +90,7 @@ export function SidebarLinks({ items }: { items: NavItem[] }) {
           >
             <Icon name={item.icon} className={cx("h-5 w-5", active && "text-accent-500")} />
             {item.label}
+            <PendingDot />
           </Link>
         );
       })}
@@ -108,6 +123,7 @@ export function BottomNavLinks({ items }: { items: NavItem[] }) {
                 >
                   <Icon name={item.icon} className={cx("h-6 w-6", active && "text-accent-600")} />
                   {item.label}
+                  <PendingDot />
                 </Link>
               </li>
             );
