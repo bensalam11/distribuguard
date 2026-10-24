@@ -6,17 +6,19 @@ import { SubmitButton } from "@/components/ui/submit-button";
 import { initialActionState } from "@/lib/action-state";
 import { ROLE_LABELS, type MemberRole } from "@/lib/roles";
 import { INVITABLE_ROLES, MEMBER_ROLES } from "@/lib/validation/auth";
-import { cancelInvitationAction, inviteAction, updateMemberAction } from "./actions";
+import { cancelInvitationAction, inviteAction, regenerateLinkAction, updateMemberAction } from "./actions";
+import { InviteLink } from "./invite-link";
 
 const INVITABLE_OPTIONS = INVITABLE_ROLES.map((r) => ({ value: r, label: ROLE_LABELS[r] }));
 const ROLE_OPTIONS = MEMBER_ROLES.map((r) => ({ value: r, label: ROLE_LABELS[r] }));
 
-export function InviteForm() {
+export function InviteForm({ organizationName }: { organizationName: string }) {
   const [state, action] = useActionState(inviteAction, initialActionState);
   const v = state.values ?? {};
   return (
     <form action={action} className="space-y-4" noValidate>
       {state.message && <Alert tone={state.ok ? "success" : "error"}>{state.message}</Alert>}
+      {state.ok && state.link && <InviteLink link={state.link} organizationName={organizationName} />}
       <Field
         label="Nom complet"
         name="fullName"
@@ -39,11 +41,12 @@ export function InviteForm() {
         options={INVITABLE_OPTIONS}
         errors={state.fieldErrors?.role}
       />
-      <SubmitButton className="w-full" pendingLabel="Envoi de l'invitation…">
-        Envoyer l&apos;invitation
+      <SubmitButton className="w-full" pendingLabel="Création du lien…">
+        Créer le lien d&apos;invitation
       </SubmitButton>
       <p className="text-xs text-slate-500">
-        L&apos;employé reçoit un e-mail pour choisir son mot de passe. Le lien est valable 7 jours.
+        Aucun e-mail n&apos;est envoyé : vous transmettez vous-même le lien à l&apos;employé (WhatsApp, SMS…). Il
+        l&apos;ouvre pour choisir son mot de passe.
       </p>
     </form>
   );
@@ -64,7 +67,37 @@ export function CancelInvitationButton({ invitationId }: { invitationId: string 
 
 type Member = { id: string; fullName: string; email: string; role: MemberRole; isActive: boolean };
 
-export function MemberRow({ member, isSelf }: { member: Member; isSelf: boolean }) {
+function NewLinkButton({ memberId, organizationName }: { memberId: string; organizationName: string }) {
+  const [state, action] = useActionState(regenerateLinkAction, initialActionState);
+  return (
+    <div className="w-full">
+      <form action={action}>
+        <input type="hidden" name="memberId" value={memberId} />
+        <SubmitButton variant="secondary" className="px-3 py-1.5 text-xs" pendingLabel="…">
+          Nouveau lien
+        </SubmitButton>
+      </form>
+      {state.message && (
+        <div className="mt-2 space-y-2">
+          <Alert tone={state.ok ? "success" : "error"}>{state.message}</Alert>
+          {state.ok && state.link && <InviteLink link={state.link} organizationName={organizationName} />}
+        </div>
+      )}
+    </div>
+  );
+}
+
+export function MemberRow({
+  member,
+  isSelf,
+  awaitingFirstLogin = false,
+  organizationName,
+}: {
+  member: Member;
+  isSelf: boolean;
+  awaitingFirstLogin?: boolean;
+  organizationName: string;
+}) {
   const [state, action] = useActionState(updateMemberAction, initialActionState);
   const [role, setRole] = useState<MemberRole>(member.role);
   const changed = role !== member.role;
@@ -82,7 +115,10 @@ export function MemberRow({ member, isSelf }: { member: Member; isSelf: boolean 
               </span>
             )}
           </p>
-          <p className="truncate text-xs text-slate-500">{member.email}</p>
+          <p className="truncate text-xs text-slate-500">
+            {member.email}
+            {awaitingFirstLogin && " · mot de passe pas encore choisi"}
+          </p>
         </div>
 
         <div className="flex flex-wrap items-center gap-2">
@@ -128,6 +164,11 @@ export function MemberRow({ member, isSelf }: { member: Member; isSelf: boolean 
           )}
         </div>
       </div>
+      {awaitingFirstLogin && (
+        <div className="mt-2">
+          <NewLinkButton memberId={member.id} organizationName={organizationName} />
+        </div>
+      )}
       {state.message && (
         <div className="mt-2">
           <Alert tone={state.ok ? "success" : "error"}>{state.message}</Alert>

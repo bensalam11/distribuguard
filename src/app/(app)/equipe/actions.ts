@@ -2,7 +2,7 @@
 
 import { revalidatePath } from "next/cache";
 import type { ActionState } from "@/lib/action-state";
-import { cancelInvitation, inviteEmployee, updateMember } from "@/lib/server/team";
+import { cancelInvitation, inviteEmployee, regenerateInviteLink, updateMember } from "@/lib/server/team";
 
 const field = (fd: FormData, name: string) => String(fd.get(name) ?? "");
 
@@ -30,4 +30,8 @@ export async function updateMemberAction(_prev: ActionState, fd: FormData): Prom
   });
   if (result.ok) revalidatePath("/equipe");
   return result;
+}
+
+export async function regenerateLinkAction(_prev: ActionState, fd: FormData): Promise<ActionState> {
+  return regenerateInviteLink(field(fd, "memberId"));
 }

@@ -113,5 +113,7 @@ export async function setPassword(input: unknown): Promise<ActionState> {
     }
     return { ok: false, message: "Lien expiré ou session invalide. Redemandez un lien." };
   }
+  // Compte activé : le propriétaire n'a plus besoin de lui renvoyer de lien.
+  await supabase.rpc("mark_password_set");
   return { ok: true };
 }

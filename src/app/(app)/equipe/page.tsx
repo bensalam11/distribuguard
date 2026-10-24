@@ -5,6 +5,7 @@ import { Card } from "@/components/ui/form";
 import { formatDate } from "@/lib/format";
 import { ROLE_DESCRIPTIONS, ROLE_LABELS, can, type MemberRole } from "@/lib/roles";
 import { requireContext } from "@/lib/server/session";
+import { membersAwaitingFirstLogin } from "@/lib/server/team";
 import { createClient } from "@/lib/supabase/server";
 import { CancelInvitationButton, InviteForm, MemberRow } from "./team-forms";
 
@@ -15,7 +16,7 @@ export default async function TeamPage() {
   if (!can(ctx.member.role, "team.manage")) notFound();
 
   const supabase = await createClient();
-  const [{ data: members }, { data: invitations }] = await Promise.all([
+  const [{ data: members }, { data: invitations }, awaiting] = await Promise.all([
     supabase.from("members").select("id, full_name, email, role, is_active").order("created_at"),
     supabase
       .from("invitations")
@@ -23,11 +24,12 @@ export default async function TeamPage() {
       .eq("status", "pending")
       .gt("expires_at", new Date().toISOString())
       .order("created_at", { ascending: false }),
+    membersAwaitingFirstLogin(),
   ]);
 
   return (
     <>
-      <PageHeader title="Équipe" description="Invitez vos employés et attribuez-leur un rôle." />
+      <PageHeader title="Équipe" description="Invitez vos employés par un lien personnel et attribuez-leur un rôle." />
 
       <div className="grid gap-6 xl:grid-cols-[1fr_380px]">
         <div className="space-y-6">
@@ -44,6 +46,8 @@ export default async function TeamPage() {
                     isActive: m.is_active,
                   }}
                   isSelf={m.id === ctx.member.id}
+                  awaitingFirstLogin={awaiting.has(m.id)}
+                  organizationName={ctx.organization.name}
                 />
               ))}
             </ul>
@@ -72,7 +76,7 @@ export default async function TeamPage() {
 
         <div className="space-y-6">
           <Card title="Inviter un employé">
-            <InviteForm />
+            <InviteForm organizationName={ctx.organization.name} />
           </Card>
           <Card title="Rôles">
             <dl className="space-y-3 text-sm">

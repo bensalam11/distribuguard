@@ -49,19 +49,23 @@ test.describe("parcours complet (Supabase Auth + boîte e-mail de test)", () => 
 
     const a = await signupAndConfirm(browser, "Boissons Akwa", ownerA);
 
-    // Invitation
+    // Invitation par lien (aucun e-mail) : le propriétaire copie le lien affiché
     await a.goto("/equipe");
-    const since = Date.now();
     await a.getByLabel("Nom complet").fill("Paul Magasinier");
     await a.getByLabel("E-mail").fill(storekeeper);
     await a.getByLabel("Rôle", { exact: true }).selectOption("storekeeper");
-    await a.getByRole("button", { name: "Envoyer l'invitation" }).click();
-    await expect(a.getByText(`Invitation envoyée à ${storekeeper}.`)).toBeVisible();
+    await a.getByRole("button", { name: "Créer le lien d'invitation" }).click();
+    await expect(a.getByText("Invitation créée pour Paul Magasinier.", { exact: false })).toBeVisible();
+    await expect(a.getByRole("link", { name: "Envoyer par WhatsApp" })).toHaveAttribute(
+      "href",
+      /^https:\/\/wa\.me\/\?text=/,
+    );
+    const inviteLink = await a.getByLabel("Lien d'invitation").inputValue();
 
     // Le magasinier active son compte sur mobile
     const mobile = await browser.newContext({ viewport: { width: 390, height: 844 }, isMobile: true });
     const s = await mobile.newPage();
-    await s.goto(await waitForLink(storekeeper, since));
+    await s.goto(inviteLink);
     await expect(s).toHaveURL(/\/mot-de-passe$/);
     await s.getByLabel("Nouveau mot de passe").fill("magasin123");
     await s.getByLabel("Confirmer le mot de passe").fill("magasin123");

@@ -39,33 +39,37 @@ _Authentication → URL Configuration_ :
 - **Site URL** : `http://localhost:3000` (en production : l'URL réelle, ex. `https://app.distribuguard.cm`).
 - **Redirect URLs** : ajouter `http://localhost:3000/**` (et `https://<votre-domaine>/**` en production).
 
-## 4. Modèles d'e-mails (obligatoire)
+## 4. Durée de validité des liens
 
-> Sur le plan gratuit, Supabase refuse de modifier les modèles tant que le SMTP personnalisé (étape 5)
-> n'est pas configuré. Faites l'étape 5 d'abord.
+_Authentication → Sign In / Providers → Email_ : **Email OTP Expiration** = `86400` (24 h, le maximum).
+Les liens d'invitation sont transmis à la main (WhatsApp) : une heure serait trop court.
+(Déjà dans `supabase/config.toml` : `npx supabase config push` l'applique.)
 
-_Authentication → Emails → Templates_. Les modèles par défaut ne fonctionnent pas avec l'application :
-remplacez le contenu de ces trois modèles par celui des fichiers du dossier `supabase/templates/` :
+## 5. E-mails : SMTP et modèles (facultatif)
 
-| Modèle Supabase  | Sujet conseillé                          | Fichier à copier                     |
-| ---------------- | ---------------------------------------- | ------------------------------------ |
-| Confirm signup   | Confirmez votre inscription à DistribuGuard | `supabase/templates/confirmation.html` |
-| Invite user      | Vous êtes invité sur DistribuGuard        | `supabase/templates/invite.html`       |
-| Reset Password   | Réinitialisation de votre mot de passe   | `supabase/templates/recovery.html`     |
+Les **invitations d'employés n'utilisent pas l'e-mail** : le propriétaire obtient un lien personnel à
+copier ou à envoyer par WhatsApp (écran **Équipe**). Seuls la confirmation d'inscription et le
+« mot de passe oublié » envoient un e-mail.
+
+Sans SMTP, le service intégré de Supabase n'envoie qu'aux adresses **des membres de votre équipe Supabase**,
+et seulement 2 e-mails par heure. Les modèles par défaut fonctionnent, à condition de cliquer le lien
+**dans le navigateur qui a fait la demande**.
+
+Pour lever ces limites (recommandé avant d'ouvrir l'inscription au public), avec un nom de domaine :
+
+1. _Project Settings → Authentication → SMTP Settings_ (ex. Resend, Brevo, Mailjet). Expéditeur :
+   `noreply@<votre-domaine>`, nom : `DistribuGuard`.
+2. Puis remplacez les modèles (_Authentication → Emails → Templates_ ; Supabase refuse de les modifier
+   sans SMTP sur le plan gratuit) par le contenu des fichiers de `supabase/templates/` — le lien fonctionne
+   alors depuis n'importe quel appareil :
+
+| Modèle Supabase | Sujet conseillé                             | Fichier à copier                       |
+| --------------- | ------------------------------------------- | -------------------------------------- |
+| Confirm signup  | Confirmez votre inscription à DistribuGuard | `supabase/templates/confirmation.html` |
+| Reset Password  | Réinitialisation de votre mot de passe      | `supabase/templates/recovery.html`     |
 
 Alternative par la CLI : décommenter les blocs `[auth.email.template.*]` de `supabase/config.toml`, puis
-`npx supabase config push`. Cette commande applique aussi les réglages de l'étape 3 (déjà décrits dans ce fichier).
-
-## 5. Envoi des e-mails (SMTP)
-
-Le service d'e-mail intégré de Supabase n'envoie qu'aux adresses **des membres de votre équipe Supabase**
-et seulement quelques e-mails par heure. Pour inviter un vrai employé, configurez un SMTP :
-_Project Settings → Authentication → SMTP Settings_ (ex. Brevo, Resend, Mailjet, ou le SMTP de votre hébergeur).
-
-- Expéditeur : `noreply@<votre-domaine>`, nom : `DistribuGuard`.
-
-Pour un tout premier essai sans SMTP, utilisez comme adresses (propriétaire et employé) des e-mails
-ajoutés comme membres de votre organisation Supabase.
+`npx supabase config push`.
 
 ## 6. Clés pour l'application
 
@@ -96,5 +100,6 @@ Vérification de la phase 0 :
 1. `/inscription` → créez l'entreprise A → cliquez le lien reçu par e-mail → tableau de bord avec
    « Dépôt principal » et abonnement « Essai ».
 2. Dans une fenêtre de navigation privée, créez l'entreprise B → elle ne voit ni l'entreprise A ni ses membres.
-3. Avec A : **Équipe** → invitez un magasinier → il reçoit l'e-mail, choisit son mot de passe, arrive sur
-   le tableau de bord de A, sans menu « Équipe ».
+3. Avec A : **Équipe** → invitez un magasinier → copiez le lien affiché (ou « Envoyer par WhatsApp ») →
+   ouvert dans une autre fenêtre, il choisit son mot de passe et arrive sur le tableau de bord de A, sans
+   menu « Équipe ».
