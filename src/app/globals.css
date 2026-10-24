@@ -1,0 +1,21 @@
+@import "tailwindcss";
+
+/* Bleu foncé, blanc, accents verts (SPEC §12). */
+@theme {
+  --color-brand-50: #eef3fa;
+  --color-brand-100: #d6e2f2;
+  --color-brand-600: #1f4f8f;
+  --color-brand-700: #173d70;
+  --color-brand-800: #102c52;
+  --color-brand-900: #0b1f3a;
+  --color-accent-50: #ecfdf3;
+  --color-accent-500: #16a34a;
+  --color-accent-600: #15803d;
+  --color-accent-700: #166534;
+  --font-sans: ui-sans-serif, system-ui, sans-serif;
+}
+
+body {
+  background: #f5f7fb;
+  color: #0f172a;
+}

@@ -1,0 +1,5 @@
+node_modules
+.next
+supabase/templates
+package-lock.json
+*.md
