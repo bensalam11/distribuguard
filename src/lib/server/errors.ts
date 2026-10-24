@@ -11,3 +11,18 @@ export function userMessageFromDbError(error: { code?: string; message?: string 
   }
   return GENERIC_ERROR;
 }
+
+export const FORBIDDEN_ERROR = "Vous n'avez pas les droits pour cette action.";
+
+/**
+ * Comme userMessageFromDbError, avec des messages pour les doublons (23505)
+ * et les refus de droits (42501 / RLS).
+ */
+export function dbErrorMessage(
+  error: { code?: string; message?: string } | null | undefined,
+  messages: { duplicate?: string } = {},
+): string {
+  if (error?.code === "23505" && messages.duplicate) return messages.duplicate;
+  if (error?.code === "42501") return FORBIDDEN_ERROR;
+  return userMessageFromDbError(error);
+}

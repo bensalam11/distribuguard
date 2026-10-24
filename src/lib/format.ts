@@ -33,3 +33,10 @@ export function formatDateTime(date: Date | string): string {
   }).format(d);
   return `${formatDate(d)} ${time}`;
 }
+
+/** Contenance : 650 ml → « 65 cl », 1500 ml → « 1,5 L », 330 ml → « 33 cl ». */
+export function formatVolume(ml: number | null | undefined): string {
+  if (!ml) return "";
+  if (ml >= 1000) return `${(ml / 1000).toLocaleString("fr-FR", { maximumFractionDigits: 2 })} L`;
+  return `${(ml / 10).toLocaleString("fr-FR", { maximumFractionDigits: 1 })} cl`;
+}

@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { formatDate, formatDateTime, formatFCFA } from "./format";
+import { formatDate, formatDateTime, formatFCFA, formatVolume } from "./format";
 
 const normalize = (s: string) => s.replace(/[  ]/g, " ");
 
@@ -28,5 +28,16 @@ describe("formatDate", () => {
     // 23 h 30 UTC = 0 h 30 le lendemain à Douala.
     expect(formatDate("2026-10-24T23:30:00Z")).toBe("25/10/2026");
     expect(formatDateTime("2026-10-24T13:05:00Z")).toBe("24/10/2026 14:05");
+  });
+});
+
+describe("formatVolume", () => {
+  it("affiche en cl sous le litre, en L au-delà", () => {
+    expect(formatVolume(650)).toBe("65 cl");
+    expect(formatVolume(330)).toBe("33 cl");
+    expect(formatVolume(375)).toBe("37,5 cl");
+    expect(formatVolume(1500)).toBe("1,5 L");
+    expect(formatVolume(1000)).toBe("1 L");
+    expect(formatVolume(null)).toBe("");
   });
 });

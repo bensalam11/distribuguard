@@ -52,7 +52,7 @@ Les tests d'isolation tournent sur une base PostgreSQL locale, effacée et recr�
 imitation du schéma `auth` de Supabase (`supabase/tests/supabase_stub.sql`) puis toutes les migrations.
 
 1. PostgreSQL 15+ local.
-2. Pour les tests « via l'API », le binaire [PostgREST](https://github.com/PostgREST/postgrest/releases) (v12).
+2. Pour les tests « via l'API », le binaire [PostgREST](https://github.com/PostgREST/postgrest/releases) (v12 ou plus récent ; v16 testée sur Mac Intel).
 3. Fichier `.env.test.local` :
 
    ```

@@ -38,7 +38,6 @@ describe.skipIf(!hasDatabase)("inscription (SQL)", () => {
 
   it("est atomique : si une donnée est invalide, ni compte ni organisation ne sont créés", async () => {
     const email = uniqueEmail("broken");
-    const before = await adminQuery<{ n: string }>("select count(*) as n from public.organizations");
 
     await expect(
       createAuthUser(email, {
@@ -52,8 +51,8 @@ describe.skipIf(!hasDatabase)("inscription (SQL)", () => {
     ).rejects.toThrow();
 
     expect(await adminQuery("select id from auth.users where email = $1", [email])).toEqual([]);
-    const after = await adminQuery<{ n: string }>("select count(*) as n from public.organizations");
-    expect(after[0].n).toBe(before[0].n);
+    // Filtré sur l'e-mail : d'autres fichiers de tests créent des organisations en parallèle.
+    expect(await adminQuery("select id from public.organizations where email = $1", [email])).toEqual([]);
   });
 
   it("un utilisateur créé sans métadonnées n'appartient à aucune organisation", async () => {

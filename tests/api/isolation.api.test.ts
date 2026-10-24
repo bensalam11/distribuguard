@@ -2,29 +2,10 @@
  * Isolation vérifiée via l'API REST (PostgREST, le même moteur que Supabase
  * utilise derrière supabase-js), avec de vrais JWT signés.
  */
-import { createHmac } from "node:crypto";
 import { PostgrestClient } from "@supabase/postgrest-js";
-import { beforeAll, describe, expect, inject, it } from "vitest";
+import { beforeAll, describe, expect, it } from "vitest";
+import { clientFor, postgrestUrl, signJwt } from "../setup/api";
 import { inviteMember, signupOrganization } from "../setup/db";
-
-const postgrestUrl = inject("postgrestUrl");
-const secret = process.env.TEST_JWT_SECRET ?? "";
-
-function b64url(input: string | Buffer): string {
-  return Buffer.from(input).toString("base64url");
-}
-
-function signJwt(payload: Record<string, unknown>): string {
-  const header = b64url(JSON.stringify({ alg: "HS256", typ: "JWT" }));
-  const body = b64url(JSON.stringify({ ...payload, exp: Math.floor(Date.now() / 1000) + 600 }));
-  const signature = createHmac("sha256", secret).update(`${header}.${body}`).digest("base64url");
-  return `${header}.${body}.${signature}`;
-}
-
-function clientFor(userId: string | null) {
-  const token = signJwt(userId ? { sub: userId, role: "authenticated" } : { role: "anon" });
-  return new PostgrestClient(postgrestUrl!, { headers: { Authorization: `Bearer ${token}` } });
-}
 
 describe.skipIf(!postgrestUrl)("isolation entre organisations (via l'API)", () => {
   let a: Awaited<ReturnType<typeof signupOrganization>>;

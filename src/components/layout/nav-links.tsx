@@ -3,11 +3,35 @@
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { cx } from "@/components/ui/form";
-import type { NavIcon, NavItem } from "@/lib/navigation";
+import { isNavItemActive, type NavIcon, type NavItem } from "@/lib/navigation";
 
 function Icon({ name, className }: { name: NavIcon; className?: string }) {
   const paths: Record<NavIcon, React.ReactNode> = {
     home: <path d="M3 10.5 12 3l9 7.5V20a1 1 0 0 1-1 1h-5v-6H9v6H4a1 1 0 0 1-1-1v-9.5Z" />,
+    box: (
+      <>
+        <path d="M3.5 7.5 12 3l8.5 4.5v9L12 21l-8.5-4.5v-9Z" />
+        <path d="M3.5 7.5 12 12l8.5-4.5M12 12v9" />
+      </>
+    ),
+    warehouse: (
+      <>
+        <path d="M3 9.5 12 4l9 5.5V20H3V9.5Z" />
+        <path d="M7 20v-7h10v7M7 16.5h10" />
+      </>
+    ),
+    supplier: (
+      <>
+        <path d="M3 20V10l5 3V10l5 3V6h4l1 14H3Z" />
+        <path d="M7 17h2M12 17h2" />
+      </>
+    ),
+    building: (
+      <>
+        <path d="M5 21V4h10v17M15 9h4v12" />
+        <path d="M8 8h4M8 12h4M8 16h4M3 21h18" />
+      </>
+    ),
     team: (
       <>
         <circle cx="9" cy="8" r="3.5" />
@@ -33,17 +57,13 @@ function Icon({ name, className }: { name: NavIcon; className?: string }) {
   );
 }
 
-function isActive(pathname: string, href: string) {
-  return pathname === href || pathname.startsWith(`${href}/`);
-}
-
 /** Navigation latérale (ordinateur). */
 export function SidebarLinks({ items }: { items: NavItem[] }) {
   const pathname = usePathname();
   return (
     <nav className="flex flex-col gap-1" aria-label="Navigation principale">
       {items.map((item) => {
-        const active = isActive(pathname, item.href);
+        const active = isNavItemActive(pathname, item);
         return (
           <Link
             key={item.href}
@@ -72,24 +92,26 @@ export function BottomNavLinks({ items }: { items: NavItem[] }) {
       aria-label="Navigation principale"
     >
       <ul className="flex">
-        {items.map((item) => {
-          const active = isActive(pathname, item.href);
-          return (
-            <li key={item.href} className="flex-1">
-              <Link
-                href={item.href}
-                aria-current={active ? "page" : undefined}
-                className={cx(
-                  "flex flex-col items-center gap-0.5 py-2 text-xs font-medium",
-                  active ? "text-brand-800" : "text-slate-500",
-                )}
-              >
-                <Icon name={item.icon} className={cx("h-6 w-6", active && "text-accent-600")} />
-                {item.label}
-              </Link>
-            </li>
-          );
-        })}
+        {items
+          .filter((item) => !item.desktopOnly)
+          .map((item) => {
+            const active = isNavItemActive(pathname, item);
+            return (
+              <li key={item.href} className="flex-1">
+                <Link
+                  href={item.href}
+                  aria-current={active ? "page" : undefined}
+                  className={cx(
+                    "flex flex-col items-center gap-0.5 py-2 text-xs font-medium",
+                    active ? "text-brand-800" : "text-slate-500",
+                  )}
+                >
+                  <Icon name={item.icon} className={cx("h-6 w-6", active && "text-accent-600")} />
+                  {item.label}
+                </Link>
+              </li>
+            );
+          })}
       </ul>
     </nav>
   );

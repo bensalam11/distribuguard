@@ -10,7 +10,35 @@ const ORG_TABLES = [
   { table: "subscriptions", orgColumn: "organization_id" },
   { table: "audit_logs", orgColumn: "organization_id" },
   { table: "invitations", orgColumn: "organization_id" },
+  { table: "packaging_types", orgColumn: "organization_id" },
+  { table: "products", orgColumn: "organization_id" },
+  { table: "product_prices", orgColumn: "organization_id" },
+  { table: "vehicles", orgColumn: "organization_id" },
+  { table: "drivers", orgColumn: "organization_id" },
+  { table: "suppliers", orgColumn: "organization_id" },
 ] as const;
+
+/** Une ligne dans chaque table du catalogue, pour ne pas tester des tables vides. */
+async function seedCatalog(userId: string, orgId: string) {
+  const s = as(userId);
+  const [crate] = await s.query<{ id: string }>(
+    "insert into public.packaging_types (organization_id, name, kind, capacity, deposit_value) values ($1, 'Casier 12', 'crate', 12, 1200) returning id",
+    [orgId],
+  );
+  const [product] = await s.query<{ id: string }>(
+    "insert into public.products (organization_id, code, name, bottles_per_case, crate_type_id) values ($1, 'KOLA65', 'Bière Kola 65 cl', 12, $2) returning id",
+    [orgId, crate.id],
+  );
+  await s.query("insert into public.product_prices (organization_id, product_id, case_price) values ($1, $2, 7800)", [
+    orgId,
+    product.id,
+  ]);
+  await s.query("insert into public.vehicles (organization_id, name, kind) values ($1, 'Tricycle 1', 'tricycle')", [
+    orgId,
+  ]);
+  await s.query("insert into public.drivers (organization_id, full_name) values ($1, 'Paul Ndjock')", [orgId]);
+  await s.query("insert into public.suppliers (organization_id, name) values ($1, 'Brasserie Kola')", [orgId]);
+}
 
 describe.skipIf(!hasDatabase)("isolation entre organisations (SQL direct, RLS)", () => {
   let a: Awaited<ReturnType<typeof signupOrganization>>;
@@ -22,6 +50,8 @@ describe.skipIf(!hasDatabase)("isolation entre organisations (SQL direct, RLS)",
     // Invitations et journal non vides des deux côtés, pour ne pas tester des tables vides.
     await inviteMember(a.userId, "cashier");
     await inviteMember(b.userId, "cashier");
+    await seedCatalog(a.userId, a.orgId);
+    await seedCatalog(b.userId, b.orgId);
   });
 
   for (const { table, orgColumn } of ORG_TABLES) {

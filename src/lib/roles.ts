@@ -18,13 +18,33 @@ export const ROLE_DESCRIPTIONS: Record<MemberRole, string> = {
   cashier: "Encaissements, dépenses, paiements fournisseur, consultation des créances.",
 };
 
-export type Permission = "team.manage" | "settings.manage" | "audit.read" | "depots.manage";
+export type Permission =
+  | "team.manage"
+  | "settings.manage"
+  | "audit.read"
+  | "depots.manage"
+  | "logistics.manage"
+  | "products.edit"
+  | "packaging.manage"
+  | "prices.read"
+  | "prices.manage"
+  | "onboarding.manage";
 
 const PERMISSIONS: Record<Permission, readonly MemberRole[]> = {
   "team.manage": ["owner"],
   "settings.manage": ["owner"],
   "audit.read": ["owner", "manager"],
   "depots.manage": ["owner", "manager"],
+  /** Véhicules, chauffeurs, fournisseurs. */
+  "logistics.manage": ["owner", "manager"],
+  /** Fiches produits, sans les prix. */
+  "products.edit": ["owner", "manager", "storekeeper"],
+  /** Types d'emballage et valeurs de consigne. */
+  "packaging.manage": ["owner", "manager"],
+  /** Le magasinier ne voit jamais les prix. */
+  "prices.read": ["owner", "manager", "cashier"],
+  "prices.manage": ["owner", "manager"],
+  "onboarding.manage": ["owner", "manager"],
 };
 
 export function can(role: MemberRole, permission: Permission): boolean {
